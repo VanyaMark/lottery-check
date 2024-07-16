@@ -1,5 +1,6 @@
 // Cargar todo el JSON y lo ponemos en una variable
 const lottery = require('./data/lottery.json');
+const intersectArrays = require('./utils/utils.js');
 
 // Importar el paquete de terceros que acabamos de instalar. Fijaos que como se encuentra en la carpeta node_modules NO hace falta especificar ninguna ruta (al igual que pasa con los built-in modules)
 const express = require('express');
@@ -62,9 +63,34 @@ app.get('/api/check-date', (req, res) => {
 
 });
 
+// /api/get-computed-results?date=2024-06-18&playedNumbers=2 3 20 33 44 50 02
+app.get('/api/get-computed-results', (req, res) => {
+    //1 Obtener fecha y números de query string 
+    const { date, playedNumbers } = req.query;
+    console.log(date)
+    console.log(playedNumbers)
+    // 2 Buscar la fecha y si hay un numeros de loteria de ella
+    const item = lottery.find(raffle => raffle.draw_date.includes(date));
+    console.log("🚀 ~ file: app.js:39 ~ app.get ~ item:", item)
+    // 3 Comparar los números jugados con los que han tocado y tener un contador para cada match
+    if (item) {
+       let winningNumbersArr = item.winning_numbers.split(' ');
+        winningNumbersArr.push(item.supplemental_numbers);
+        winningNumbersArr.push(item.super_ball);
+
+        console.log('winningNumbersArr: ', winningNumbersArr)
+        let usersNumbersArr = playedNumbers.split(' ');
+        console.log('usersNumbersArr: ', usersNumbersArr)
+    }
+    // 4 Buscar en prizes.json el premio según el contador
+   const matchingNumbers = intersectArrays(usersNumbersArr, winningNumbersArr)
+   console.log('matchingNumbers: ', matchingNumbers)
+    // 5 Hacer un res.send con el json con los campos matchNumbers y prize
+});
+
 
 // Levantar el servidor
-app.listen(3000, () => {
-    console.log("Servidor corriendo en el puerto 3000.");
+app.listen(3005, () => {
+    console.log("Servidor corriendo en el puerto 3005.");
 });
 
